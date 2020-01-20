@@ -126,3 +126,41 @@ func TestRpcAioBdev(t *testing.T) {
 
 	testRpcBdevGetBdevs(t, spdkClient, true)
 }
+
+func TestRpcVhost(t *testing.T) {
+	spdkApp := appInit(t)
+	defer appFini(t, spdkApp)
+
+	spdkClient := connect(t)
+	defer disconnect(t, spdkClient)
+
+	testRpcBdevMallocCreate(t, spdkClient)
+
+	{
+
+		response, err := spdk.VhostCreateBlkController(context.Background(), spdkClient,
+			spdk.VhostCreateBlkControllerArgs{DevName: "Malloc0", Ctrlr: "vhostblk0"})
+		assert.NoError(t, err, "Failed to create vhost-blk: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.VhostGetControllers(context.Background(), spdkClient,
+			spdk.VhostGetControllersArgs{Name: "vhostblk0"})
+		assert.NoError(t, err, "Failed to list vhost: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.VhostGetControllers(context.Background(), spdkClient,
+			spdk.VhostGetControllersArgs{})
+		assert.NoError(t, err, "Failed to list vhost: %s", err)
+		fmt.Println(response)
+	}
+	{
+		//time.Sleep(time.Second * 5)
+		response, err := spdk.VhostDeleteController(context.Background(), spdkClient,
+			spdk.VhostDeleteControllerArgs{Ctrlr: "vhostblk0"})
+		assert.NoError(t, err, "Failed to delete vhost: %s", err)
+		fmt.Println(response)
+	}
+	testRpcBdevMallocDelete(t, spdkClient)
+}
