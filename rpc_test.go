@@ -9,9 +9,9 @@ package spdkctrl_test
 import (
 	"context"
 	"fmt"
-
 	"path"
 	"testing"
+	"time"
 
 	spdk "github.com/dong-liuliu/spdkctrl"
 	"github.com/stretchr/testify/assert"
@@ -160,6 +160,47 @@ func TestRpcVhost(t *testing.T) {
 		response, err := spdk.VhostDeleteController(context.Background(), spdkClient,
 			spdk.VhostDeleteControllerArgs{Ctrlr: "vhostblk0"})
 		assert.NoError(t, err, "Failed to delete vhost: %s", err)
+		fmt.Println(response)
+	}
+	testRpcBdevMallocDelete(t, spdkClient)
+}
+
+var nbdPath = "/dev/nbd4"
+
+func TestRpcNbd(t *testing.T) {
+	spdkApp := appInit(t)
+	defer appFini(t, spdkApp)
+
+	spdkClient := connect(t)
+	defer disconnect(t, spdkClient)
+
+	testRpcBdevMallocCreate(t, spdkClient)
+	{
+
+		response, err := spdk.NbdStartDisk(context.Background(), spdkClient,
+			spdk.NbdStartDiskArgs{BdevName: "Malloc0", NbdDevice: nbdPath})
+		assert.NoError(t, err, "Failed to start nbd: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.NbdGetDisks(context.Background(), spdkClient,
+			spdk.NbdGetDisksArgs{NbdDevice: nbdPath})
+		assert.NoError(t, err, "Failed to list nbd: %s", err)
+		fmt.Println(response)
+
+	}
+	{
+		response, err := spdk.NbdGetDisks(context.Background(), spdkClient,
+			spdk.NbdGetDisksArgs{})
+		assert.NoError(t, err, "Failed to list nbd: %s", err)
+		fmt.Println(response)
+	}
+	{
+		fmt.Println("Sleep 5 seconds")
+		time.Sleep(time.Second * 5)
+		response, err := spdk.NbdStopDisk(context.Background(), spdkClient,
+			spdk.NbdStopDiskArgs{NbdDevice: nbdPath})
+		assert.NoError(t, err, "Failed to stop nbd: %s", err)
 		fmt.Println(response)
 	}
 	testRpcBdevMallocDelete(t, spdkClient)
