@@ -90,7 +90,7 @@ type logConn struct {
 func (lc *logConn) Read(b []byte) (int, error) {
 	n, err := lc.Conn.Read(b)
 	if err == nil {
-		lc.logger.Debug("read", "data", b[:n])
+		lc.logger.Debug("read", "data", string(b[:n]))
 	} else if err != io.EOF {
 		// Filter connection close err
 		if strings.Contains(err.Error(), "use of closed network connection") ||
@@ -104,7 +104,7 @@ func (lc *logConn) Read(b []byte) (int, error) {
 	return n, err
 }
 func (lc *logConn) Write(b []byte) (int, error) {
-	lc.logger.Debug("write", "data", b)
+	lc.logger.Debug("write", "data", string(b))
 	n, err := lc.Conn.Write(b)
 	if err != nil {
 		lc.logger.Error("write error", "error", err)
