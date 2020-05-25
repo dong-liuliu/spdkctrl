@@ -88,3 +88,102 @@ func BdevLvolGetLvstores(ctx context.Context, client *Client, args BdevLvolGetLv
 	}
 	return response, err
 }
+
+type BdevLvolCreateArgs struct {
+	//lvol_name will be used in the alias of the created logical volume.
+	LvolName string `json:"lvol_name"`
+	//Size will be rounded up to a multiple of cluster size.
+	Size          int64 `json:"size"`
+	ThinProvision bool  `json:"thin_provision,omitempty"`
+	//Either uuid or lvs_name must be specified, but not both.
+	Uuid        string `json:"uuid,omitempty"`
+	LvsName     string `json:"lvs_name,omitempty"`
+	ClearMethod string `json:"clear_method,omitempty"`
+}
+
+//BdevLvolCreateResponse is "string": UUID of the created logical volume is returned.
+func BdevLvolCreate(ctx context.Context, client *Client, args BdevLvolCreateArgs) (string, error) {
+	var response string
+	err := client.Invoke(ctx, "bdev_lvol_create", args, &response)
+	if err != nil {
+		return "", err
+	}
+	return response, err
+}
+
+type BdevLvolDeleteArgs struct {
+	//UUID or alias of the logical volume to destroy
+	Name string `json:"name"`
+}
+
+//BdevLvolDeleteResponse is "bool": indication of delete result
+func BdevLvolDelete(ctx context.Context, client *Client, args BdevLvolDeleteArgs) (bool, error) {
+	var response bool
+	err := client.Invoke(ctx, "bdev_lvol_delete", args, &response)
+	if err != nil {
+		return false, err
+	}
+	return response, err
+}
+
+type BdevLvolSnapshotArgs struct {
+	//UUID or alias of the logical volume to snapshot
+	LvolName     string `json:"lvol_name"`
+	SnapshotName string `json:"snapshot_name"`
+}
+
+//BdevLvolSnapshotResponse is "string": UUID of the created logical volume snapshot is returned.
+func BdevLvolSnapshot(ctx context.Context, client *Client, args BdevLvolSnapshotArgs) (string, error) {
+	var response string
+	err := client.Invoke(ctx, "bdev_lvol_snapshot", args, &response)
+	if err != nil {
+		return "", err
+	}
+	return response, err
+}
+
+type BdevLvolCloneArgs struct {
+	//UUID or alias of the logical volume to clone
+	SnapshotName string `json:"snapshot_name"`
+	CloneName    string `json:"clone_name"`
+}
+
+//BdevLvolCloneResponse is "string": UUID of the created logical volume clone is returned.
+func BdevLvolClone(ctx context.Context, client *Client, args BdevLvolCloneArgs) (string, error) {
+	var response string
+	err := client.Invoke(ctx, "bdev_lvol_clone", args, &response)
+	if err != nil {
+		return "", err
+	}
+	return response, err
+}
+
+type BdevLvolSetReadOnlyArgs struct {
+	//UUID or alias of the logical volume to set
+	Name string `json:"name"`
+}
+
+//BdevLvolSetReadOnlyResponse is "bool": result
+func BdevLvolSetReadOnly(ctx context.Context, client *Client, args BdevLvolSetReadOnlyArgs) (bool, error) {
+	var response bool
+	err := client.Invoke(ctx, "bdev_lvol_set_read_only", args, &response)
+	if err != nil {
+		return false, err
+	}
+	return response, err
+}
+
+type BdevLvolDecoupleParentArgs struct {
+	//UUID or alias of the logical volume to set
+	Name string `json:"name"`
+}
+
+//BdevLvolDecoupleParentResponse is "bool": result
+func BdevLvolDecoupleParent(ctx context.Context, client *Client, args BdevLvolDecoupleParentArgs) (bool, error) {
+	var response bool
+	err := client.Invoke(ctx, "bdev_lvol_decouple_parent", args, &response)
+	if err != nil {
+		return false, err
+	}
+	return response, err
+}

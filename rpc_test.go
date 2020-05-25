@@ -32,7 +32,7 @@ func disconnect(t *testing.T, spdkClient *spdk.Client) {
 
 func testRpcBdevMallocCreate(t *testing.T, spdkClient *spdk.Client) {
 	argBdevMallocCreate := spdk.BdevMallocCreateArgs{
-		NumBlocks: 10240,
+		NumBlocks: 102400,
 		BlockSize: 4096,
 	}
 
@@ -227,6 +227,54 @@ func TestBdevLvs(t *testing.T) {
 		fmt.Println(response)
 
 	}
+	{
+		response, err := spdk.BdevLvolCreate(context.Background(), spdkClient,
+			spdk.BdevLvolCreateArgs{
+				LvolName:      "Lvol0",
+				Size:          4096 * 4096 * 10,
+				ThinProvision: true,
+				LvsName:       "Lvs0"})
+		assert.NoError(t, err, "Failed to create lvol bdev: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.BdevLvolSnapshot(context.Background(), spdkClient,
+			spdk.BdevLvolSnapshotArgs{
+				LvolName:     "Lvs0/Lvol0",
+				SnapshotName: "lvol0-snapshot"})
+		assert.NoError(t, err, "Failed to create lvol snapshot: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.BdevLvolClone(context.Background(), spdkClient,
+			spdk.BdevLvolCloneArgs{
+				SnapshotName: "Lvs0/lvol0-snapshot",
+				CloneName:    "lvol0-clone"})
+		assert.NoError(t, err, "Failed to create lvol clone: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.BdevLvolSetReadOnly(context.Background(), spdkClient,
+			spdk.BdevLvolSetReadOnlyArgs{
+				Name: "Lvs0/Lvol0"})
+		assert.NoError(t, err, "Failed to set lvol: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.BdevLvolDecoupleParent(context.Background(), spdkClient,
+			spdk.BdevLvolDecoupleParentArgs{
+				Name: "Lvs0/lvol0-clone"})
+		assert.NoError(t, err, "Failed to decouple lvol: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.BdevLvolDelete(context.Background(), spdkClient,
+			spdk.BdevLvolDeleteArgs{
+				Name: "Lvs0/Lvol0"})
+		assert.NoError(t, err, "Failed to delete lvol bdev: %s", err)
+		fmt.Println(response)
+	}
+
 	// Error returned if Params is {}, it is an issue in SPDK side.
 	// SPDK requirse modication in rpc_bdev_lvol_get_lvstores
 	if false {
