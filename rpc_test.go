@@ -205,3 +205,39 @@ func TestRpcNbd(t *testing.T) {
 	}
 	testRpcBdevMallocDelete(t, spdkClient)
 }
+
+func TestBdevLvs(t *testing.T) {
+	spdkApp := appInit(t)
+	defer appFini(t, spdkApp)
+
+	spdkClient := connect(t)
+	defer disconnect(t, spdkClient)
+
+	testRpcBdevMallocCreate(t, spdkClient)
+	{
+		response, err := spdk.BdevLvolCreateLvstore(context.Background(), spdkClient,
+			spdk.BdevLvolCreateLvstoreArgs{BdevName: "Malloc0", LvsName: "Lvs0"})
+		assert.NoError(t, err, "Failed to create lvstore: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.BdevLvolGetLvstores(context.Background(), spdkClient,
+			spdk.BdevLvolGetLvstoresArgs{LvsName: "Lvs0"})
+		assert.NoError(t, err, "Failed to list lvstore: %s", err)
+		fmt.Println(response)
+
+	}
+	{
+		response, err := spdk.BdevLvolGetLvstores(context.Background(), spdkClient,
+			spdk.BdevLvolGetLvstoresArgs{LvsName: "", Uuid: ""})
+		assert.NoError(t, err, "Failed to list lvstore: %s", err)
+		fmt.Println(response)
+	}
+	{
+		response, err := spdk.BdevLvolDeleteLvstore(context.Background(), spdkClient,
+			spdk.BdevLvolDeleteLvstoreArgs{LvsName: "Lvs0"})
+		assert.NoError(t, err, "Failed to delete lvstore: %s", err)
+		fmt.Println(response)
+	}
+	testRpcBdevMallocDelete(t, spdkClient)
+}
