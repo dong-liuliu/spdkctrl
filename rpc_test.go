@@ -128,6 +128,9 @@ func TestRpcAioBdev(t *testing.T) {
 }
 
 func TestRpcVhost(t *testing.T) {
+	var response interface{}
+	var err error
+
 	spdkApp := appInit(t)
 	defer appFini(t, spdkApp)
 
@@ -136,38 +139,36 @@ func TestRpcVhost(t *testing.T) {
 
 	testRpcBdevMallocCreate(t, spdkClient)
 
-	{
+	response, err = spdk.VhostCreateBlkController(context.Background(), spdkClient,
+		spdk.VhostCreateBlkControllerArgs{DevName: "Malloc0", Ctrlr: "vhostblk0"})
+	assert.NoError(t, err, "Failed to create vhost-blk: %s", err)
+	fmt.Println(response)
 
-		response, err := spdk.VhostCreateBlkController(context.Background(), spdkClient,
-			spdk.VhostCreateBlkControllerArgs{DevName: "Malloc0", Ctrlr: "vhostblk0"})
-		assert.NoError(t, err, "Failed to create vhost-blk: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.VhostGetControllers(context.Background(), spdkClient,
-			spdk.VhostGetControllersArgs{Name: "vhostblk0"})
-		assert.NoError(t, err, "Failed to list vhost: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.VhostGetControllers(context.Background(), spdkClient,
-			spdk.VhostGetControllersArgs{})
-		assert.NoError(t, err, "Failed to list vhost: %s", err)
-		fmt.Println(response)
-	}
-	{
-		//time.Sleep(time.Second * 5)
-		response, err := spdk.VhostDeleteController(context.Background(), spdkClient,
-			spdk.VhostDeleteControllerArgs{Ctrlr: "vhostblk0"})
-		assert.NoError(t, err, "Failed to delete vhost: %s", err)
-		fmt.Println(response)
-	}
+	response, err = spdk.VhostGetControllers(context.Background(), spdkClient,
+		spdk.VhostGetControllersArgs{Name: "vhostblk0"})
+	assert.NoError(t, err, "Failed to list vhost: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.VhostGetControllers(context.Background(), spdkClient,
+		spdk.VhostGetControllersArgs{})
+	assert.NoError(t, err, "Failed to list vhost: %s", err)
+	fmt.Println(response)
+
+	//time.Sleep(time.Second * 5)
+	response, err = spdk.VhostDeleteController(context.Background(), spdkClient,
+		spdk.VhostDeleteControllerArgs{Ctrlr: "vhostblk0"})
+	assert.NoError(t, err, "Failed to delete vhost: %s", err)
+	fmt.Println(response)
+
 	testRpcBdevMallocDelete(t, spdkClient)
 }
 
 var nbdPath = "/dev/nbd4"
 
 func TestRpcNbd(t *testing.T) {
+	var response interface{}
+	var err error
+
 	spdkApp := appInit(t)
 	defer appFini(t, spdkApp)
 
@@ -175,38 +176,36 @@ func TestRpcNbd(t *testing.T) {
 	defer disconnect(t, spdkClient)
 
 	testRpcBdevMallocCreate(t, spdkClient)
-	{
 
-		response, err := spdk.NbdStartDisk(context.Background(), spdkClient,
-			spdk.NbdStartDiskArgs{BdevName: "Malloc0", NbdDevice: nbdPath})
-		assert.NoError(t, err, "Failed to start nbd: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.NbdGetDisks(context.Background(), spdkClient,
-			spdk.NbdGetDisksArgs{NbdDevice: nbdPath})
-		assert.NoError(t, err, "Failed to list nbd: %s", err)
-		fmt.Println(response)
+	response, err = spdk.NbdStartDisk(context.Background(), spdkClient,
+		spdk.NbdStartDiskArgs{BdevName: "Malloc0", NbdDevice: nbdPath})
+	assert.NoError(t, err, "Failed to start nbd: %s", err)
+	fmt.Println(response)
 
-	}
-	{
-		response, err := spdk.NbdGetDisks(context.Background(), spdkClient,
-			spdk.NbdGetDisksArgs{})
-		assert.NoError(t, err, "Failed to list nbd: %s", err)
-		fmt.Println(response)
-	}
-	{
-		fmt.Println("Sleep 5 seconds")
-		time.Sleep(time.Second * 5)
-		response, err := spdk.NbdStopDisk(context.Background(), spdkClient,
-			spdk.NbdStopDiskArgs{NbdDevice: nbdPath})
-		assert.NoError(t, err, "Failed to stop nbd: %s", err)
-		fmt.Println(response)
-	}
+	response, err = spdk.NbdGetDisks(context.Background(), spdkClient,
+		spdk.NbdGetDisksArgs{NbdDevice: nbdPath})
+	assert.NoError(t, err, "Failed to list nbd: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.NbdGetDisks(context.Background(), spdkClient,
+		spdk.NbdGetDisksArgs{})
+	assert.NoError(t, err, "Failed to list nbd: %s", err)
+	fmt.Println(response)
+
+	fmt.Println("Sleep 5 seconds")
+	time.Sleep(time.Second * 5)
+	response, err = spdk.NbdStopDisk(context.Background(), spdkClient,
+		spdk.NbdStopDiskArgs{NbdDevice: nbdPath})
+	assert.NoError(t, err, "Failed to stop nbd: %s", err)
+	fmt.Println(response)
+
 	testRpcBdevMallocDelete(t, spdkClient)
 }
 
 func TestBdevLvs(t *testing.T) {
+	var response interface{}
+	var err error
+
 	spdkApp := appInit(t)
 	defer appFini(t, spdkApp)
 
@@ -214,80 +213,71 @@ func TestBdevLvs(t *testing.T) {
 	defer disconnect(t, spdkClient)
 
 	testRpcBdevMallocCreate(t, spdkClient)
-	{
-		response, err := spdk.BdevLvolCreateLvstore(context.Background(), spdkClient,
-			spdk.BdevLvolCreateLvstoreArgs{BdevName: "Malloc0", LvsName: "Lvs0"})
-		assert.NoError(t, err, "Failed to create lvstore: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.BdevLvolGetLvstores(context.Background(), spdkClient,
-			spdk.BdevLvolGetLvstoresArgs{LvsName: "Lvs0"})
-		assert.NoError(t, err, "Failed to list lvstore: %s", err)
-		fmt.Println(response)
 
-	}
-	{
-		response, err := spdk.BdevLvolCreate(context.Background(), spdkClient,
-			spdk.BdevLvolCreateArgs{
-				LvolName:      "Lvol0",
-				Size:          4096 * 4096 * 10,
-				ThinProvision: true,
-				LvsName:       "Lvs0"})
-		assert.NoError(t, err, "Failed to create lvol bdev: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.BdevLvolSnapshot(context.Background(), spdkClient,
-			spdk.BdevLvolSnapshotArgs{
-				LvolName:     "Lvs0/Lvol0",
-				SnapshotName: "lvol0-snapshot"})
-		assert.NoError(t, err, "Failed to create lvol snapshot: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.BdevLvolClone(context.Background(), spdkClient,
-			spdk.BdevLvolCloneArgs{
-				SnapshotName: "Lvs0/lvol0-snapshot",
-				CloneName:    "lvol0-clone"})
-		assert.NoError(t, err, "Failed to create lvol clone: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.BdevLvolSetReadOnly(context.Background(), spdkClient,
-			spdk.BdevLvolSetReadOnlyArgs{
-				Name: "Lvs0/Lvol0"})
-		assert.NoError(t, err, "Failed to set lvol: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.BdevLvolDecoupleParent(context.Background(), spdkClient,
-			spdk.BdevLvolDecoupleParentArgs{
-				Name: "Lvs0/lvol0-clone"})
-		assert.NoError(t, err, "Failed to decouple lvol: %s", err)
-		fmt.Println(response)
-	}
-	{
-		response, err := spdk.BdevLvolDelete(context.Background(), spdkClient,
-			spdk.BdevLvolDeleteArgs{
-				Name: "Lvs0/Lvol0"})
-		assert.NoError(t, err, "Failed to delete lvol bdev: %s", err)
-		fmt.Println(response)
-	}
+	response, err = spdk.BdevLvolCreateLvstore(context.Background(), spdkClient,
+		spdk.BdevLvolCreateLvstoreArgs{BdevName: "Malloc0", LvsName: "Lvs0"})
+	assert.NoError(t, err, "Failed to create lvstore: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.BdevLvolGetLvstores(context.Background(), spdkClient,
+		spdk.BdevLvolGetLvstoresArgs{LvsName: "Lvs0"})
+	assert.NoError(t, err, "Failed to list lvstore: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.BdevLvolCreate(context.Background(), spdkClient,
+		spdk.BdevLvolCreateArgs{
+			LvolName:      "Lvol0",
+			Size:          4096 * 4096 * 10,
+			ThinProvision: true,
+			LvsName:       "Lvs0"})
+	assert.NoError(t, err, "Failed to create lvol bdev: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.BdevLvolSnapshot(context.Background(), spdkClient,
+		spdk.BdevLvolSnapshotArgs{
+			LvolName:     "Lvs0/Lvol0",
+			SnapshotName: "lvol0-snapshot"})
+	assert.NoError(t, err, "Failed to create lvol snapshot: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.BdevLvolClone(context.Background(), spdkClient,
+		spdk.BdevLvolCloneArgs{
+			SnapshotName: "Lvs0/lvol0-snapshot",
+			CloneName:    "lvol0-clone"})
+	assert.NoError(t, err, "Failed to create lvol clone: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.BdevLvolSetReadOnly(context.Background(), spdkClient,
+		spdk.BdevLvolSetReadOnlyArgs{
+			Name: "Lvs0/Lvol0"})
+	assert.NoError(t, err, "Failed to set lvol: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.BdevLvolDecoupleParent(context.Background(), spdkClient,
+		spdk.BdevLvolDecoupleParentArgs{
+			Name: "Lvs0/lvol0-clone"})
+	assert.NoError(t, err, "Failed to decouple lvol: %s", err)
+	fmt.Println(response)
+
+	response, err = spdk.BdevLvolDelete(context.Background(), spdkClient,
+		spdk.BdevLvolDeleteArgs{
+			Name: "Lvs0/Lvol0"})
+	assert.NoError(t, err, "Failed to delete lvol bdev: %s", err)
+	fmt.Println(response)
 
 	// Error returned if Params is {}, it is an issue in SPDK side.
 	// SPDK requirse modication in rpc_bdev_lvol_get_lvstores
 	if false {
-		response, err := spdk.BdevLvolGetLvstores(context.Background(), spdkClient,
+		response, err = spdk.BdevLvolGetLvstores(context.Background(), spdkClient,
 			spdk.BdevLvolGetLvstoresArgs{})
 		assert.NoError(t, err, "Failed to list lvstore: %s", err)
 		fmt.Println(response)
 	}
-	{
-		response, err := spdk.BdevLvolDeleteLvstore(context.Background(), spdkClient,
-			spdk.BdevLvolDeleteLvstoreArgs{LvsName: "Lvs0"})
-		assert.NoError(t, err, "Failed to delete lvstore: %s", err)
-		fmt.Println(response)
-	}
+
+	response, err = spdk.BdevLvolDeleteLvstore(context.Background(), spdkClient,
+		spdk.BdevLvolDeleteLvstoreArgs{LvsName: "Lvs0"})
+	assert.NoError(t, err, "Failed to delete lvstore: %s", err)
+	fmt.Println(response)
+
 	testRpcBdevMallocDelete(t, spdkClient)
 }
