@@ -82,7 +82,13 @@ func BdevLvolGetLvstores(ctx context.Context, client *Client, args BdevLvolGetLv
 		return nil, fmt.Errorf("invalid parameters")
 	}
 
-	err := client.Invoke(ctx, "bdev_lvol_get_lvstores", args, &response)
+	var err error
+	if args.LvsName == "" && args.Uuid == "" {
+		err = client.Invoke(ctx, "bdev_lvol_get_lvstores", nil, &response)
+	} else {
+		err = client.Invoke(ctx, "bdev_lvol_get_lvstores", args, &response)
+	}
+
 	if err != nil {
 		return nil, err
 	}

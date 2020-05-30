@@ -17,10 +17,23 @@ type NbdStartDiskArgs struct {
 	NbdDevice string `json:"nbd_device"`
 }
 
+type nbdStartDiskOptArgs struct {
+	BdevName string `json:"bdev_name"`
+}
+
 //NbdStartDiskResponse is string: path of exported Nbd disk.
 func NbdStartDisk(ctx context.Context, client *Client, args NbdStartDiskArgs) (string, error) {
 	var response string
-	err := client.Invoke(ctx, "nbd_start_disk", args, &response)
+	var err error
+	if args.NbdDevice == "" {
+		optArgs := nbdStartDiskOptArgs{
+			BdevName: args.BdevName}
+
+		err = client.Invoke(ctx, "nbd_start_disk", optArgs, &response)
+	} else {
+		err = client.Invoke(ctx, "nbd_start_disk", args, &response)
+	}
+
 	if err != nil {
 		return "", err
 	}
