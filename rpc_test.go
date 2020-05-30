@@ -9,6 +9,7 @@ package spdkctrl_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -18,7 +19,13 @@ import (
 )
 
 func connect(t *testing.T) *spdk.Client {
-	client, err := spdk.NewClient(testSpdkAppSocket, nil)
+	debug := false
+	output := os.Stdout
+	if debug == false {
+		output = nil
+	}
+
+	client, err := spdk.NewClient(testSpdkAppSocket, output)
 	assert.NoError(t, err, "Failed to connect SPDK app socket %s: %s", testSpdkAppSocket, err)
 	assert.NotEmpty(t, client, "SPDK client is nil")
 
@@ -267,7 +274,7 @@ func TestBdevLvs(t *testing.T) {
 
 	// Error returned if Params is {}, it is an issue in SPDK side.
 	// SPDK requirse modication in rpc_bdev_lvol_get_lvstores
-	if false {
+	if true {
 		response, err = spdk.BdevLvolGetLvstores(context.Background(), spdkClient,
 			spdk.BdevLvolGetLvstoresArgs{})
 		assert.NoError(t, err, "Failed to list lvstore: %s", err)
