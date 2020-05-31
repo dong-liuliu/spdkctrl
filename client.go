@@ -95,7 +95,7 @@ func (lc *logConn) Read(b []byte) (int, error) {
 		// Filter connection close err
 		if strings.Contains(err.Error(), "use of closed network connection") ||
 			strings.Contains(err.Error(), "connection reset by peer") {
-			lc.logger.Info("read", "error:", err)
+			lc.logger.Debug("read", "error:", err)
 		} else {
 			lc.logger.Error("read", "error:", err)
 		}
